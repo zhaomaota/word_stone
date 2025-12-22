@@ -5,7 +5,6 @@ import InputArea from './components/InputArea';
 import Sidebar from './components/Sidebar';
 import CardOverlay from './components/CardOverlay';
 import LoginModal from './components/LoginModal';
-import OnlineUsers from './components/OnlineUsers';
 import { useGame } from './hooks/useGame';
 import { useSocket } from './hooks/useSocket';
 import './App.css';
@@ -94,12 +93,9 @@ function App() {
         onAddPacks={addPacks}
         onOpenPack={handleOpenPack}
         onCheat={cheatMode}
-      />
-
-      <OnlineUsers 
-        users={onlineUsers} 
+        onlineUsers={onlineUsers}
         isConnected={isConnected}
-        currentUsername={username}  
+        currentUsername={username}
       />
 
       <div id="main-container">

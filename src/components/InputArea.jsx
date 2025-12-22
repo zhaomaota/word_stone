@@ -33,7 +33,7 @@ export default function InputArea({
       const words = value.split(/\s+/);
       const current = words[words.length - 1];
 
-      if (!current || current.length < 2) {
+      if (!current || current.length < 1) {
         setSuggestions([]);
         return;
       }
@@ -75,12 +75,14 @@ export default function InputArea({
     const words = input.split(/\s+/);
     words.pop();
     words.push(word);
-    setInput(words.join(' ') + ' ');
+    const newInput = words.join(' ') + ' ';
+    setInput(newInput);
     setSuggestions([]);
     inputRef.current?.focus();
   };
 
-  const handleSend = () => {
+  // 使用 useCallback 并依赖 input，确保总是使用最新值
+  const handleSend = useCallback(() => {
     const text = input.trim();
     if (!text) return;
 
@@ -90,7 +92,8 @@ export default function InputArea({
     let validTokens = [];
 
     tokens.forEach(t => {
-      const clean = t.replace(/[^a-zA-Z]/g, '');
+      // 修复：保留连字符，只提取字母和连字符
+      const clean = t.replace(/[^a-zA-Z\-]/g, '');
       if (!clean) {
         html += t + ' ';
         return;
@@ -149,7 +152,7 @@ export default function InputArea({
 
     setInput('');
     setSuggestions([]);
-  };
+  }, [input, inventory, lowerInventory, isOnlineMode, onSendMessage, onSystemMessage]);
 
   return (
     <div id="input-area">
