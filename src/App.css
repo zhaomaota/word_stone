@@ -203,6 +203,13 @@ button.cyber-btn.cheat:hover:not(:disabled) {
   color: var(--neon-blue);
 }
 
+/* Current user's avatar */
+.avatar.you {
+  border-color: var(--neon-pink);
+  color: var(--neon-pink);
+  box-shadow: 0 0 8px rgba(255,20,147,0.12);
+}
+
 .msg-content {
   background: rgba(255, 255, 255, 0.05);
   padding: 10px 15px;

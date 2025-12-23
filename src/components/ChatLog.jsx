@@ -24,8 +24,10 @@ export default function ChatLog({ logs, onSendRose, currentUsername }) {
       
       {recentLogs.map((log, idx) => (
         <div key={log.id ?? log.timestamp ?? idx} className="log-entry">
-          <div className={`avatar ${log.type === 'sys' ? 'sys' : 'user'}`}>
-            {log.type === 'sys' ? 'SYS' : 'USR'}
+          <div className={
+            `avatar ${log.type === 'sys' ? 'sys' : (log.username === currentUsername ? 'you' : 'user')}`
+          }>
+            {log.type === 'sys' ? 'SYS' : (log.username === currentUsername ? 'YOU' : 'USR')}
           </div>
           <div style={{ flex: 1 }}>
             <div 
