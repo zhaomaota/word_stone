@@ -30,8 +30,12 @@ export default function ChatLog({ logs, onSendRose, currentUsername }) {
           <div style={{ flex: 1 }}>
             <div 
               className={`msg-content ${log.type === 'sys' ? (log.isError ? 'err-msg' : 'sys-msg') : ''}`}
-              dangerouslySetInnerHTML={{ __html: log.content }}
-            />
+            >
+              <span dangerouslySetInnerHTML={{ __html: log.content }} />
+              {log.roses > 0 && log.username && log.username === currentUsername && (
+                <span className="msg-roses"> 🌹{log.roses}</span>
+              )}
+            </div>
             
             {/* 用户消息才显示鲜花功能 */}
             {log.type === 'user' && log.username !== currentUsername && (

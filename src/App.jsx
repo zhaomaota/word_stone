@@ -10,7 +10,7 @@ import { useSocket } from './hooks/useSocket';
 import './App.css';
 
 function App() {
-  const { packs, myInventory, chatLog, addLog, addPacks, cheatMode, openPack } = useGame();
+  const { packs, myInventory, chatLog, addLog, updateLogRoses, addPacks, cheatMode, openPack } = useGame();
   const [overlayCards, setOverlayCards] = useState([]);
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
   const [username, setUsername] = useState('');
@@ -57,6 +57,8 @@ useEffect(() => {
           ...prev,
           [data.messageId]: data.roses ?? (prev[data.messageId] || 0)
         }));
+        // 也同时更新 chatLog 中对应消息，确保本地显示一致（包括自己的消息）
+        updateLogRoses(data.messageId, data.roses ?? 0);
       }
 
       // 仅当此次更新是针对当前用户时，才更新 userRoses
@@ -66,7 +68,7 @@ useEffect(() => {
 
         // 在聊天中插入一条系统提示，告知谁给你送了花
         const senderName = data.sender ?? data.senderUsername ?? '有人';
-        addLog('sys', `✨ ${senderName} 给你的消息收了一朵鲜花（消息ID: ${data.messageId}）。`, false);
+        addLog('sys', `🌹 ${senderName} 为你的发言送上了鲜花`, false);
       }
     };
 

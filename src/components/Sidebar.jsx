@@ -15,6 +15,16 @@ export default function Sidebar({ inventory, onInsertWord }) {
   const [activeRarity, setActiveRarity] = useState(null);
   const [scrollTop, setScrollTop] = useState(0);
   const listRef = useRef(null);
+  const [width, setWidth] = useState(() => {
+    try {
+      const stored = localStorage.getItem('sidebarWidth');
+      return stored ? parseInt(stored, 10) : 320;
+    } catch (e) {
+      return 320;
+    }
+  });
+  const draggingRef = useRef(false);
+  const rafRef = useRef(null);
 
   const ITEM_HEIGHT = 50; // 每个词汇项的高度
   const CONTAINER_HEIGHT = 600; // 容器高度，根据你的布局调整
@@ -95,8 +105,57 @@ export default function Sidebar({ inventory, onInsertWord }) {
 
   const totalHeight = filteredWords.length * ITEM_HEIGHT;
 
+  // Persist width when it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('sidebarWidth', String(width));
+    } catch (e) {}
+  }, [width]);
+
+  // cleanup rAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <div id="sidebar">
+    <div id="sidebar" style={{ width: `${width}px` }}>
+      {/* 左侧竖向拖拽条（靠近 sidebar 的左边缘） */}
+      <div
+        className="sidebar-resizer"
+        role="separator"
+        aria-orientation="vertical"
+        onPointerDown={(e) => {
+          e.preventDefault();
+          draggingRef.current = true;
+          // capture pointer to continue receiving events even if leaving element
+          e.currentTarget.setPointerCapture(e.pointerId);
+        }}
+        onPointerMove={(e) => {
+          if (!draggingRef.current) return;
+          // throttle with rAF
+          if (rafRef.current) return;
+          rafRef.current = requestAnimationFrame(() => {
+            rafRef.current = null;
+            // calculate new width based on pointer position
+            // sidebar is on the right; pointer's clientX is distance from left edge
+            const newWidth = Math.max(220, Math.min(window.innerWidth - 200, window.innerWidth - e.clientX));
+            setWidth(newWidth);
+          });
+        }}
+        onPointerUp={(e) => {
+          if (!draggingRef.current) return;
+          draggingRef.current = false;
+          try { localStorage.setItem('sidebarWidth', String(width)); } catch (err) {}
+          try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (err) {}
+        }}
+        onPointerCancel={() => {
+          draggingRef.current = false;
+        }}
+      />
       <div className="sidebar-header">
         <div className="vocab-stats">
           <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>

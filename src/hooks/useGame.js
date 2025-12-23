@@ -91,6 +91,17 @@ export function useGame() {
     }]);
   };
 
+  // 更新指定消息的鲜花数（用于接收服务器的 rose-update）
+  const updateLogRoses = (messageId, roses) => {
+    if (!messageId) return;
+    setChatLog(prev => prev.map(log => {
+      if (String(log.id) === String(messageId)) {
+        return { ...log, roses: roses ?? (log.roses || 0) };
+      }
+      return log;
+    }));
+  };
+
   const addPacks = () => {
     setPacks(prev => prev + 5);
     addLog('sys', '已领取 5 个卡包。', false);
@@ -167,6 +178,7 @@ export function useGame() {
     myInventory,
     chatLog,
     addLog,
+    updateLogRoses,
     addPacks,
     cheatMode,
     openPack

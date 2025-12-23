@@ -221,6 +221,15 @@ button.cyber-btn.cheat:hover:not(:disabled) {
   color: #ffcccc;
 }
 
+/* inline roses badge appended to message content */
+.msg-roses {
+  margin-left: 8px;
+  color: #ff69b4;
+  font-weight: bold;
+  text-shadow: 0 0 6px rgba(255,105,180,0.2);
+  font-size: 13px;
+}
+
 /* Tokens */
 .token {
   display: inline-block;
@@ -356,6 +365,41 @@ button.cyber-btn.cheat:hover:not(:disabled) {
   display: flex;
   flex-direction: column;
   border-left: 1px solid var(--border-color);
+  position: relative; /* required for absolute resizer */
+}
+
+/* Resizer: thin, fixed-size interactive area on the left edge of the sidebar */
+.sidebar-resizer {
+  position: absolute;
+  left: -6px; /* extend slightly into the main area to make it easy to grab */
+  top: 0;
+  bottom: 0;
+  width: 12px; /* fixed interactive width but visually thin */
+  cursor: col-resize;
+  z-index: 50;
+  display: block;
+  /* make the visible line thin while keeping hit area larger */
+  background: transparent;
+}
+
+.sidebar-resizer::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 50%;
+  height: 40px;
+  width: 2px; /* visually thin line */
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+}
+
+/* Hover/active visual (does not change width of handle) */
+.sidebar-resizer:hover::before,
+.sidebar-resizer:active::before {
+  background: rgba(180,180,255,0.12);
+  box-shadow: 0 0 8px rgba(0,243,255,0.08);
 }
 
 .sidebar-header {
