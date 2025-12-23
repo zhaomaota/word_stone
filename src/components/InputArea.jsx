@@ -1,17 +1,33 @@
-import React, { useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { findClosestWord } from '../utils/helpers';
 
-export default function InputArea({ 
+const InputArea = forwardRef(({ 
   inventory, 
-  onSendMessage,      // (html, tokens) => void
-  onSystemMessage,    // (content, isError) => void
+  onSendMessage,
+  onSystemMessage,
   isOnlineMode = false 
-}) {
+}, ref) => {
   const [input, setInput] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef(null);
   const debounceTimer = useRef(null);
+  const inputValueRef = useRef('');
+
+  // 暴露方法给父组件
+  useImperativeHandle(ref, () => ({
+    insertWord: (word) => {
+      const currentValue = inputValueRef.current.trim();
+      const newValue = currentValue ? `${currentValue} ${word} ` : `${word} `;
+      
+      setInput(newValue);
+      inputValueRef.current = newValue; // 关键：同步更新 ref
+      
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+    }
+  }));
 
   const lowerInventory = useMemo(() => {
     const lower = {};
@@ -24,6 +40,7 @@ export default function InputArea({
   const handleInput = useCallback((e) => {
     const value = e.target.value.replace(/[^a-zA-Z0-9\s.,!?;:'"()\-]/g, '');
     setInput(value);
+    inputValueRef.current = value; // 同步更新
 
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
@@ -77,13 +94,14 @@ export default function InputArea({
     words.push(word);
     const newInput = words.join(' ') + ' ';
     setInput(newInput);
+    inputValueRef.current = newInput; // 同步更新
     setSuggestions([]);
     inputRef.current?.focus();
   };
 
-  // 使用 useCallback 并依赖 input，确保总是使用最新值
   const handleSend = useCallback(() => {
-    const text = input.trim();
+    console.log('Sending message with input:', inputValueRef.current);
+    const text = inputValueRef.current.trim();
     if (!text) return;
 
     const tokens = text.split(/\s+/);
@@ -92,7 +110,6 @@ export default function InputArea({
     let validTokens = [];
 
     tokens.forEach(t => {
-      // 修复：保留连字符，只提取字母和连字符
       const clean = t.replace(/[^a-zA-Z\-]/g, '');
       if (!clean) {
         html += t + ' ';
@@ -113,14 +130,10 @@ export default function InputArea({
     });
 
     if (isOnlineMode) {
-      // 在线模式：直接发送到服务器，不管是否有未知词汇
-      // 服务器会验证并决定是否广播
       onSendMessage(html, validTokens);
     } else {
-      // 离线模式：先显示消息
       onSendMessage(html, validTokens);
 
-      // 如果有未知词汇，显示错误提示
       if (unknownWords.length > 0) {
         const lowerInv = {};
         Object.keys(inventory).forEach(key => {
@@ -151,8 +164,9 @@ export default function InputArea({
     }
 
     setInput('');
+    inputValueRef.current = ''; // 清空
     setSuggestions([]);
-  }, [input, inventory, lowerInventory, isOnlineMode, onSendMessage, onSystemMessage]);
+  }, [inventory, lowerInventory, isOnlineMode, onSendMessage, onSystemMessage]);
 
   return (
     <div id="input-area">
@@ -183,10 +197,18 @@ export default function InputArea({
           onChange={handleInput}
           onKeyDown={handleKeyDown}
         />
-        <button className="cyber-btn" style={{ border: 'none', fontSize: '12px' }} onClick={handleSend}>
+        <button 
+          className="cyber-btn" 
+          style={{ border: 'none', fontSize: '12px' }} 
+          onClick={handleSend}
+        >
           SEND
         </button>
       </div>
     </div>
   );
-}
+});
+
+InputArea.displayName = 'InputArea';
+
+export default InputArea;

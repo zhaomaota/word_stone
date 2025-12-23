@@ -143,7 +143,7 @@ export default function OnlineUsersButton({ users = [], isConnected = false, cur
                       color: '#999'
                     }}>
                       <div>
-                        词汇: <span style={{ 
+                        拥有词汇: <span style={{ 
                           color: '#ccc',
                           fontWeight: 'bold'
                         }}>

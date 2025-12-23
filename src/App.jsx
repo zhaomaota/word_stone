@@ -14,7 +14,7 @@ function App() {
   const [overlayCards, setOverlayCards] = useState([]);
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
   const [username, setUsername] = useState('');
-  const inputRef = useRef(null);
+  const inputAreaRef = useRef(null); // 改名：从 inputRef 改为 inputAreaRef
 
   const { isConnected, onlineUsers, sendMessage, onMessage, offMessage } = useSocket(username, myInventory);
 
@@ -68,17 +68,8 @@ function App() {
   }, [addLog]);
 
   const handleInsertWord = useCallback((word) => {
-    if (inputRef.current) {
-      const input = inputRef.current.querySelector('#cmd-input');
-      if (input) {
-        const currentValue = input.value || '';
-        const newValue = currentValue + (currentValue && !currentValue.endsWith(' ') ? ' ' : '') + word + ' ';
-        input.value = newValue;
-        input.focus();
-        
-        const event = new Event('input', { bubbles: true });
-        input.dispatchEvent(event);
-      }
+    if (inputAreaRef.current) {
+      inputAreaRef.current.insertWord(word);
     }
   }, []);
 
@@ -99,9 +90,10 @@ function App() {
       />
 
       <div id="main-container">
-        <div id="left-panel" ref={inputRef}>
+        <div id="left-panel">
           <ChatLog logs={chatLog} />
           <InputArea
+            ref={inputAreaRef} 
             inventory={myInventory}
             onSendMessage={handleSendMessage}
             onSystemMessage={handleSystemMessage}
