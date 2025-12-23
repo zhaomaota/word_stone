@@ -237,6 +237,38 @@ button.cyber-btn.cheat:hover:not(:disabled) {
   font-size: 13px;
 }
 
+/* Token modal styles */
+#token-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+#token-modal {
+  background: #0b0b0b;
+  border: 1px solid #222;
+  padding: 18px;
+  width: 360px;
+  max-width: calc(100% - 40px);
+  border-radius: 8px;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+}
+
+.tm-header { display:flex; align-items:center; justify-content:space-between; }
+.tm-header h3 { margin:0; font-size:18px; }
+.tm-close { background:none; border:none; color:#999; font-size:20px; cursor:pointer }
+.tm-body { margin-top:12px }
+.tm-rarity { font-size:12px; color:#ccc; margin-bottom:6px }
+.tm-trans { font-size:14px; color:#ddd }
+
+.tm-rare { color: var(--neon-blue) }
+.tm-epic { color: var(--epic) }
+.tm-legendary { color: var(--legendary) }
+
 /* Tokens */
 .token {
   display: inline-block;

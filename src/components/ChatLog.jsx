@@ -1,7 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import TokenModal from './TokenModal';
 
 export default function ChatLog({ logs, onSendRose, currentUsername }) {
   const logRef = useRef(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [tokenInfo, setTokenInfo] = useState({ word: '', rarity: '', trans: '' });
 
   useEffect(() => {
     if (logRef.current) {
@@ -9,11 +12,23 @@ export default function ChatLog({ logs, onSendRose, currentUsername }) {
     }
   }, [logs]);
 
+  const handleTokenClick = (e) => {
+    const t = e.target.closest?.('.token');
+    if (!t) return;
+    const word = t.textContent?.trim() || '';
+    const cls = Array.from(t.classList || []);
+    const rarityCls = cls.find(c => c.startsWith('c-')) || '';
+    const rarity = rarityCls ? rarityCls.replace('c-', '') : '';
+    const trans = t.getAttribute('data-t') || '';
+    setTokenInfo({ word, rarity, trans });
+    setModalOpen(true);
+  };
+
   // 只显示最近 50 条消息
   const recentLogs = logs.slice(-50);
 
   return (
-    <div id="chat-log" ref={logRef}>
+    <div id="chat-log" ref={logRef} onClick={handleTokenClick}>
       <div className="log-entry">
         <div className="avatar sys">SYS</div>
         <div className="msg-content sys-msg">
@@ -80,6 +95,13 @@ export default function ChatLog({ logs, onSendRose, currentUsername }) {
           </div>
         </div>
       ))}
+      <TokenModal
+        open={modalOpen}
+        word={tokenInfo.word}
+        rarity={tokenInfo.rarity}
+        trans={tokenInfo.trans}
+        onClose={() => setModalOpen(false)}
+      />
     </div>
   );
 }
