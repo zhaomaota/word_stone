@@ -50,6 +50,23 @@ export function useSocket(username, inventory) {
     }
   };
 
+const sendRose = (targetUsername, messageId) => {
+  console.log('🌹 准备送花:', { targetUsername, messageId });
+  console.log('📡 Socket 状态:', {
+    exists: !!socketRef.current,
+    isConnected: isConnected,
+    socketId: socketRef.current?.id,
+    connected: socketRef.current?.connected
+  });
+  
+  if (socketRef.current && isConnected) {
+    console.log('✅ 发送 send-rose 事件');
+    socketRef.current.emit('send-rose', { targetUsername, messageId });
+  } else {
+    console.error('❌ Socket 未连接，无法送花');
+  }
+};
+
   const onMessage = (callback) => {
     if (socketRef.current) {
       socketRef.current.on('message', callback);
@@ -62,11 +79,26 @@ export function useSocket(username, inventory) {
     }
   };
 
+  const onRoseUpdate = (callback) => {
+    if (socketRef.current) {
+      socketRef.current.on('rose-update', callback);
+    }
+  };
+
+  const offRoseUpdate = (callback) => {
+    if (socketRef.current) {
+      socketRef.current.off('rose-update', callback);
+    }
+  };
+
   return {
     isConnected,
     onlineUsers,
     sendMessage,
+    sendRose,
     onMessage,
-    offMessage
+    offMessage,
+    onRoseUpdate,
+    offRoseUpdate
   };
 }

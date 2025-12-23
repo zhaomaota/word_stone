@@ -12,16 +12,13 @@ const fallbackDB = [
 ];
 
 export function useGame() {
-  // 1. 所有 useState 放在最前面
   const [gameDB, setGameDB] = useState({ common: [], rare: [], epic: [], legendary: [] });
   const [packs, setPacks] = useState(0);
   const [myInventory, setMyInventory] = useState({});
   const [chatLog, setChatLog] = useState([]);
   
-  // 2. useRef 放在 useState 之后
   const hasLoaded = useRef(false);
 
-  // 3. useEffect 放在最后
   useEffect(() => {
     if (!hasLoaded.current) {
       hasLoaded.current = true;
@@ -79,8 +76,19 @@ export function useGame() {
     };
   };
 
-  const addLog = (type, content, isError = false) => {
-    setChatLog(prev => [...prev, { type, content, isError, id: Date.now() + Math.random() }]);
+  // 🔥 修改 addLog 函数，接收完整的消息数据并保证有唯一 id
+  const addLog = (type, content, isError = false, username = null, id = null, roses = 0) => {
+    const messageId = id ?? (Date.now() + Math.random());
+    const timestamp = Date.now();
+    setChatLog(prev => [...prev, {
+      type,
+      content,
+      isError,
+      username,
+      id: messageId,
+      roses,
+      timestamp
+    }]);
   };
 
   const addPacks = () => {

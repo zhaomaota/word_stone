@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function OnlineUsersButton({ users = [], isConnected = false, currentUsername = '' }) {
+export default function OnlineUsersButton({ users = [], isConnected = false, currentUsername = '', userRoses = 0 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -79,6 +79,7 @@ export default function OnlineUsersButton({ users = [], isConnected = false, cur
             ) : (
               users.map(user => {
                 const isCurrentUser = user.username === currentUsername;
+                const displayRoses = isCurrentUser ? userRoses : (user.roses || 0);
                 
                 return (
                   <div
@@ -161,7 +162,7 @@ export default function OnlineUsersButton({ users = [], isConnected = false, cur
                           color: '#ff69b4',
                           fontWeight: 'bold'
                         }}>
-                          {user.roses || 0}
+                          {displayRoses}
                         </span>
                       </div>
                     </div>
