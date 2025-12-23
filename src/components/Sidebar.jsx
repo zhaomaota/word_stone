@@ -187,7 +187,7 @@ export default function Sidebar({ inventory, onInsertWord }) {
             onChange={handleSearch}
           />
           {searchTerm && (
-            <button className="clear-btn" style={{ display: 'block' }} onClick={clearSearch}>
+            <button className="search-clear-btn" style={{ display: 'block' }} onClick={clearSearch}>
               ×
             </button>
           )}

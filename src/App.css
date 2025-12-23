@@ -154,6 +154,90 @@ button.cyber-btn.cheat:hover:not(:disabled) {
   min-width: 0;
 }
 
+/* Chat Log Container with Toolbar */
+#chat-log-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chatlog-toolbar {
+  display: flex;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.6);
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  min-height: fit-content;
+}
+
+.chatlog-btn {
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  cursor: pointer;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.chatlog-btn:hover {
+  background: rgba(0, 243, 255, 0.1);
+  box-shadow: 0 0 8px rgba(0, 243, 255, 0.3);
+  text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+}
+
+.chatlog-btn:active {
+  transform: scale(0.98);
+}
+
+.clear-btn {
+  border-color: #666;
+  color: #999;
+  font-size: 12px;
+  min-width: auto;
+  padding: 4px 8px;
+}
+
+.clear-btn:hover {
+  border-color: #888;
+  color: #bbb;
+  background: rgba(255, 107, 107, 0.08);
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.lock-btn {
+  border-color: #666;
+  color: #999;
+  min-width: auto;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.lock-btn:hover {
+  border-color: #888;
+  color: #bbb;
+  background: rgba(100, 100, 100, 0.08);
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.lock-btn.locked {
+  border-color: #888;
+  color: #aaa;
+  background: rgba(100, 100, 100, 0.1);
+  box-shadow: none;
+}
+
 #chat-log {
   flex: 1;
   padding: 20px;
@@ -161,6 +245,7 @@ button.cyber-btn.cheat:hover:not(:disabled) {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  min-height: 0;
 }
 
 .log-entry {
@@ -544,7 +629,7 @@ button.cyber-btn.cheat:hover:not(:disabled) {
   border-color: var(--neon-blue);
 }
 
-.clear-btn {
+.search-clear-btn {
   position: absolute;
   right: 8px;
   top: 50%;
@@ -557,7 +642,7 @@ button.cyber-btn.cheat:hover:not(:disabled) {
   display: none;
 }
 
-.clear-btn:hover {
+.search-clear-btn:hover {
   color: var(--neon-pink);
 }
 

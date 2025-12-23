@@ -10,7 +10,7 @@ import { useSocket } from './hooks/useSocket';
 import './App.css';
 
 function App() {
-  const { packs, myInventory, chatLog, addLog, updateLogRoses, addPacks, cheatMode, openPack } = useGame();
+  const { packs, myInventory, chatLog, addLog, updateLogRoses, clearChatLog, addPacks, cheatMode, openPack } = useGame();
   const [overlayCards, setOverlayCards] = useState([]);
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
   const [username, setUsername] = useState('');
@@ -151,6 +151,7 @@ useEffect(() => {
             logs={enrichedChatLog} 
             onSendRose={handleSendRose}
             currentUsername={username}
+            onClearLog={clearChatLog}
           />
           <InputArea
             ref={inputAreaRef} 

@@ -22,6 +22,16 @@ export function useGame() {
   useEffect(() => {
     if (!hasLoaded.current) {
       hasLoaded.current = true;
+      // Add initial system log
+      setChatLog([{
+        id: Date.now() + Math.random(),
+        type: 'sys',
+        content: '系统初始化...<br />&gt; 正在尝试挂载外部数据库 [vocabulary.json]...',
+        username: null,
+        roses: 0,
+        timestamp: new Date().toISOString(),
+        isError: false
+      }]);
       loadVocabulary();
     }
   }, []);
@@ -102,6 +112,11 @@ export function useGame() {
     }));
   };
 
+  // 清除聊天日志（仅本地操作）
+  const clearChatLog = () => {
+    setChatLog([]);
+  };
+
   const addPacks = () => {
     setPacks(prev => prev + 5);
     addLog('sys', '已领取 5 个卡包。', false);
@@ -179,6 +194,7 @@ export function useGame() {
     chatLog,
     addLog,
     updateLogRoses,
+    clearChatLog,
     addPacks,
     cheatMode,
     openPack

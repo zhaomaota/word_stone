@@ -1,16 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import TokenModal from './TokenModal';
 
-export default function ChatLog({ logs, onSendRose, currentUsername }) {
+export default function ChatLog({ logs, onSendRose, currentUsername, onClearLog }) {
   const logRef = useRef(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenInfo, setTokenInfo] = useState({ word: '', rarity: '', trans: '' });
+  const [autoScroll, setAutoScroll] = useState(true);
 
   useEffect(() => {
-    if (logRef.current) {
+    if (autoScroll && logRef.current) {
       logRef.current.scrollTop = logRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [logs, autoScroll]);
 
   const handleTokenClick = (e) => {
     const t = e.target.closest?.('.token');
@@ -28,16 +29,20 @@ export default function ChatLog({ logs, onSendRose, currentUsername }) {
   const recentLogs = logs.slice(-50);
 
   return (
-    <div id="chat-log" ref={logRef} onClick={handleTokenClick}>
-      <div className="log-entry">
-        <div className="avatar sys">SYS</div>
-        <div className="msg-content sys-msg">
-          系统初始化...<br />
-          &gt; 正在尝试挂载外部数据库 [vocabulary.json]...
-        </div>
+    <div id="chat-log-container">
+      <div className="chatlog-toolbar">
+        <button className="chatlog-btn clear-btn" onClick={onClearLog}>
+          ⊘ Clear
+        </button>
+        <button 
+          className={`chatlog-btn lock-btn ${!autoScroll ? 'locked' : ''}`} 
+          onClick={() => setAutoScroll(!autoScroll)}
+        >
+          {autoScroll ? '🔓 Unlock' : '🔒 Lock'}
+        </button>
       </div>
-      
-      {recentLogs.map((log, idx) => (
+      <div id="chat-log" ref={logRef} onClick={handleTokenClick}>
+        {recentLogs.map((log, idx) => (
         <div key={log.id ?? log.timestamp ?? idx} className="log-entry">
           <div className={
             `avatar ${log.type === 'sys' ? 'sys' : (log.username === currentUsername ? 'you' : 'user')}`
@@ -102,6 +107,7 @@ export default function ChatLog({ logs, onSendRose, currentUsername }) {
         trans={tokenInfo.trans}
         onClose={() => setModalOpen(false)}
       />
+      </div>
     </div>
   );
 }
