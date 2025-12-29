@@ -42,6 +42,13 @@ export default function Sidebar({ inventory, onInsertWord }) {
       loadFavorites();
     }
   }, [viewMode]);
+  
+  // 监听 inventory 变化，如果当前在生词本视图，则刷新
+  useEffect(() => {
+    if (viewMode === 'favorites') {
+      loadFavorites();
+    }
+  }, [inventory]);
 
   const loadFavorites = async () => {
     setLoadingFavorites(true);

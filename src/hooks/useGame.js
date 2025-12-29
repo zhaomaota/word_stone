@@ -14,7 +14,7 @@ const fallbackDB = [
 
 export function useGame() {
   const [gameDB, setGameDB] = useState({ common: [], rare: [], epic: [], legendary: [] });
-  const [packs, setPacks] = useState(0);
+  const [packs, setPacks] = useState({ normal: 0, rare: 0, epic: 0, legendary: 0 });
   const [myInventory, setMyInventory] = useState({});
   const [chatLog, setChatLog] = useState([]);
   
@@ -128,7 +128,16 @@ export function useGame() {
           // 加载卡包数量
           const packsResult = await api.getUserPacks(token);
           if (packsResult.success) {
-            setPacks(packsResult.data.totalPacks || 0);
+            // 将返回的卡包数据转换为我们的格式
+            const packCounts = { normal: 0, rare: 0, epic: 0, legendary: 0 };
+            packsResult.data.packs?.forEach(pack => {
+              // 根据 packId 映射到对应的类型
+              if (pack.packId.includes('normal')) packCounts.normal = pack.count;
+              else if (pack.packId.includes('rare')) packCounts.rare = pack.count;
+              else if (pack.packId.includes('epic')) packCounts.epic = pack.count;
+              else if (pack.packId.includes('legendary')) packCounts.legendary = pack.count;
+            });
+            setPacks(packCounts);
           }
 
           // 加载单词库存
@@ -169,14 +178,14 @@ export function useGame() {
 
   const addPacks = async () => {
     const newPackCount = 5;
-    setPacks(prev => prev + newPackCount);
-    addLog('sys', '已领取 5 个卡包。', false);
+    setPacks(prev => ({ ...prev, normal: prev.normal + newPackCount }));
+    addLog('sys', '已领取 5 个普通卡包。', false);
     
     // 同步到数据库
     const token = auth.getToken();
     if (token) {
       try {
-        await api.addPacks(token, 'default-pack-001', newPackCount);
+        await api.addPacks(token, 'normal-pack', newPackCount);
       } catch (error) {
         console.error('保存卡包失败:', error);
       }
@@ -206,15 +215,15 @@ export function useGame() {
     addLog('sys', `[测试模式] 强制注入完成。新增 ${addedCount} 个词汇。`, false);
   };
 
-  const openPack = async () => {
-    if (packs <= 0) return null;
+  const openPack = async (packType = 'normal') => {
+    if (packs[packType] <= 0) return null;
     
     const cards = [];
     const newInventory = { ...myInventory };
     
-    // 先生成卡片
+    // 根据卡包类型生成卡片
     for (let i = 0; i < 5; i++) {
-      const card = getRandomCard();
+      const card = packType === 'normal' ? getRandomCard() : getCardByRarity(packType);
       if (card) {
         cards.push(card);
         const key = card.w;
@@ -230,15 +239,33 @@ export function useGame() {
     }
     
     // 更新本地状态
-    setPacks(prev => prev - 1);
+    setPacks(prev => ({ ...prev, [packType]: prev[packType] - 1 }));
     setMyInventory(newInventory);
+    
+    // 生成系统消息提示，显示具体单词
+    const packNames = {
+      normal: '卡包',
+      rare: '稀有卡包',
+      epic: '史诗卡包',
+      legendary: '传说卡包'
+    };
+    const rarityNames = {
+      legendary: '传说',
+      epic: '史诗',
+      rare: '稀有',
+      common: '普通'
+    };
+    const wordsList = cards.map(card => 
+      `<span class="token c-${card.r}" data-t="${card.t}">${card.w}</span>`
+    ).join('、');
+    addLog('sys', `> 开启${packNames[packType]}，获得：${wordsList}`, false);
     
     // 异步同步到数据库（不阻塞返回）
     const token = auth.getToken();
     if (token) {
       try {
         // 使用卡包
-        await api.usePack(token, 'default-pack-001');
+        await api.usePack(token, `${packType}-pack`);
         
         // 保存新获得的单词
         const newWords = cards.filter(card => !myInventory[card.w]);
@@ -299,6 +326,20 @@ export function useGame() {
     return { w: item.w, t: item.t, r: rarity };
   };
 
+  const getCardByRarity = (rarity) => {
+    const list = gameDB[rarity];
+    if (!list || list.length === 0) return null;
+    const item = list[Math.floor(Math.random() * list.length)];
+    return { w: item.w, t: item.t, r: rarity };
+  };
+  
+  const updateInventory = (word, isFavorited) => {
+    setMyInventory(prev => ({
+      ...prev,
+      [word]: { ...prev[word], isFavorited }
+    }));
+  };
+
   return {
     gameDB,
     packs,
@@ -309,6 +350,7 @@ export function useGame() {
     clearChatLog,
     addPacks,
     cheatMode,
-    openPack
+    openPack,
+    updateInventory
   };
 }

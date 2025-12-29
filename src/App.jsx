@@ -13,9 +13,10 @@ import { auth, api } from './utils/api';
 import './App.css';
 
 function App() {
-  const { packs, myInventory, chatLog, addLog, updateLogRoses, clearChatLog, addPacks, cheatMode, openPack } = useGame();
+  const { packs, myInventory, chatLog, addLog, updateLogRoses, clearChatLog, addPacks, cheatMode, openPack, updateInventory } = useGame();
   const [overlayCards, setOverlayCards] = useState([]);
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
+  const [currentPackType, setCurrentPackType] = useState('normal');
   const [username, setUsername] = useState('');
   const [userRoses, setUserRoses] = useState(0);
   const [userAvatar, setUserAvatar] = useState('');
@@ -147,9 +148,10 @@ useEffect(() => {
     }
   }, []);
 
-  const handleOpenPack = useCallback(async () => {
-    const cards = await openPack();
+  const handleOpenPack = useCallback(async (packType = 'normal') => {
+    const cards = await openPack(packType);
     if (cards) {
+      setCurrentPackType(packType);
       setOverlayCards(cards);
       setIsOverlayOpen(true);
     }
@@ -161,11 +163,11 @@ useEffect(() => {
   }, []);
 
   const handleOpenAnother = useCallback(async () => {
-    const cards = await openPack();
+    const cards = await openPack(currentPackType);
     if (cards) {
       setOverlayCards(cards);
     }
-  }, [openPack]);
+  }, [openPack, currentPackType]);
 
   const handleEditProfile = useCallback(() => {
     setIsEditProfileOpen(true);
@@ -268,12 +270,7 @@ useEffect(() => {
             onClearLog={clearChatLog}
             inventory={myInventory}
             onSystemMessage={(msg) => addLog('sys', msg, false)}
-            onUpdateInventory={(word, isFavorited) => {
-              setMyInventory(prev => ({
-                ...prev,
-                [word]: { ...prev[word], isFavorited }
-              }));
-            }}
+            onUpdateInventory={updateInventory}
           />
           <InputArea
             ref={inputAreaRef} 
@@ -296,7 +293,8 @@ useEffect(() => {
         isOpen={isOverlayOpen}
         onClose={handleCloseOverlay}
         onOpenAnother={handleOpenAnother}
-        hasMorePacks={packs > 0}
+        hasMorePacks={packs[currentPackType] > 0}
+        packType={currentPackType}
       />
 
       <EditProfileModal

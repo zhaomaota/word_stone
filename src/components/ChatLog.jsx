@@ -30,6 +30,7 @@ export default function ChatLog({ logs, onSendRose, currentUsername, onClearLog,
     console.log('🔍 点击单词:', word);
     console.log('📦 inventory[word]:', wordData);
     console.log('🆔 wordId:', wordId);
+    console.log('⭐ isFavorited:', isFavorited);
     
     setTokenInfo({ word, rarity, trans, wordId, isFavorited });
     setModalOpen(true);
@@ -40,8 +41,14 @@ export default function ChatLog({ logs, onSendRose, currentUsername, onClearLog,
     setTokenInfo(prev => ({ ...prev, isFavorited }));
     
     // 同步到父组件的 inventory
-    if (onUpdateInventory && tokenInfo.word) {
-      onUpdateInventory(tokenInfo.word, isFavorited);
+    // 需要根据 wordId 查找对应的 word
+    if (onUpdateInventory) {
+      // 从 inventory 中查找匹配的 word
+      const wordEntry = Object.entries(inventory).find(([word, data]) => data.id === wordId);
+      if (wordEntry) {
+        const [word] = wordEntry;
+        onUpdateInventory(word, isFavorited);
+      }
     }
   };
 

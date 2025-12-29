@@ -1,10 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function OnlineUsersButton({ users = [], isConnected = false, currentUsername = '', userRoses = 0 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
+  const containerRef = useRef(null);
+  
+  // 点击外部关闭下拉菜单（仅当未固定时）
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!isPinned && containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsExpanded(false);
+      }
+    };
+    
+    if (isExpanded) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isExpanded, isPinned]);
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <div ref={containerRef} style={{ position: 'relative', display: 'inline-block' }}>
       {/* 主按钮 */}
       <button
         className="cyber-btn"
@@ -57,9 +76,35 @@ export default function OnlineUsersButton({ users = [], isConnected = false, cur
             color: 'var(--neon-cyan)',
             textTransform: 'uppercase',
             letterSpacing: '1.5px',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}>
-            Online Users
+            <span>Online Users</span>
+            <button
+              onClick={() => setIsPinned(!isPinned)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: isPinned ? 'var(--neon-cyan)' : '#666',
+                fontSize: '14px',
+                cursor: 'pointer',
+                padding: '4px',
+                transition: 'all 0.2s',
+                transform: isPinned ? 'rotate(45deg)' : 'rotate(0)',
+                textShadow: isPinned ? '0 0 8px var(--neon-cyan)' : 'none'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--neon-cyan)';
+              }}
+              onMouseLeave={(e) => {
+                if (!isPinned) e.currentTarget.style.color = '#666';
+              }}
+              title={isPinned ? '取消固定' : '固定列表'}
+            >
+              📌
+            </button>
           </div>
 
           {/* 用户列表内容 */}

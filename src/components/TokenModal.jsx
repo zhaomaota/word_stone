@@ -19,12 +19,16 @@ export default function TokenModal({ open, word = '', rarity = '', trans = '', w
   const handleToggleFavorite = async () => {
     if (!wordId || loading) return;
     
+    console.log('🔄 开始切换收藏状态:', { word, wordId, currentState: isFavorited });
+    
     setLoading(true);
     const newFavoriteState = !isFavorited;
     
     try {
       const token = auth.getToken();
       const result = await api.toggleFavorite(token, wordId, newFavoriteState);
+      
+      console.log('✅ API返回结果:', result);
       
       if (result.success) {
         setIsFavorited(newFavoriteState);
@@ -35,6 +39,7 @@ export default function TokenModal({ open, word = '', rarity = '', trans = '', w
           const message = newFavoriteState 
             ? `已将 <span class="token c-${rarity}" data-t="${trans}">${word}</span> 收藏到生词本`
             : `已将 <span class="token c-${rarity}" data-t="${trans}">${word}</span> 移出生词本`;
+          console.log('📢 发送系统消息:', message);
           onSystemMessage(message);
         }
       }
