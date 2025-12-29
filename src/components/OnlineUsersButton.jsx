@@ -80,6 +80,8 @@ export default function OnlineUsersButton({ users = [], isConnected = false, cur
               users.map(user => {
                 const isCurrentUser = user.username === currentUsername;
                 const displayRoses = isCurrentUser ? userRoses : (user.roses || 0);
+                // 优先显示昵称，没有昵称才显示用户名
+                const displayName = user.nickname || user.username;
                 
                 return (
                   <div
@@ -117,7 +119,7 @@ export default function OnlineUsersButton({ users = [], isConnected = false, cur
                           ? '0 0 5px var(--neon-green)' 
                           : '0 0 5px var(--neon-cyan)'
                       }}>
-                        {user.username}
+                        {displayName}
                       </div>
                       
                       {isCurrentUser && (

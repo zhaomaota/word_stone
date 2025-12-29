@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
-
-const SERVER_URL = 'http://localhost:3001';
+import { config } from '../config';
 
 export function useSocket(username, inventory) {
   const socketRef = useRef(null);
@@ -12,7 +11,7 @@ export function useSocket(username, inventory) {
     if (!username) return;
 
     // 创建连接
-    socketRef.current = io(SERVER_URL);
+    socketRef.current = io(config.SERVER_URL);
 
     socketRef.current.on('connect', () => {
       console.log('✅ 已连接到服务器');

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useRef, useMemo, useCallback, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { findClosestWord } from '../utils/helpers';
 
 const InputArea = forwardRef(({ 
@@ -11,6 +11,7 @@ const InputArea = forwardRef(({
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef(null);
+  const suggestionsRef = useRef(null);
   const debounceTimer = useRef(null);
   const inputValueRef = useRef('');
 
@@ -88,6 +89,22 @@ const InputArea = forwardRef(({
     }
   };
 
+  // 使用 useEffect 确保在 DOM 更新后滚动
+  useEffect(() => {
+    const container = suggestionsRef.current;
+    if (!container || suggestions.length === 0) return;
+
+    const item = container.children[selectedIndex];
+    if (!item) return;
+
+    // 使用 scrollIntoView 确保元素在可视区域内
+    item.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'nearest'
+    });
+  }, [selectedIndex, suggestions]);
+
   const selectSuggestion = (word) => {
     const words = input.split(/\s+/);
     words.pop();
@@ -130,6 +147,37 @@ const InputArea = forwardRef(({
     });
 
     if (isOnlineMode) {
+      // 在线模式：如果有非法词汇，阻止发送并显示错误
+      if (unknownWords.length > 0) {
+        const lowerInv = {};
+        Object.keys(inventory).forEach(key => {
+          lowerInv[key.toLowerCase()] = inventory[key];
+        });
+
+        let suggestionList = [];
+        unknownWords.forEach(word => {
+          const guess = findClosestWord(word.toLowerCase(), lowerInv);
+          if (guess) {
+            const originalWord = lowerInventory[guess];
+            if (originalWord) {
+              suggestionList.push(
+                `"${word}" &rarr; <span class="c-${inventory[originalWord].rarity}">${originalWord}</span>`
+              );
+            }
+          }
+        });
+
+        let errMsg = ` ACCESS DENIED: 未识别的数据块 [${unknownWords.join(', ')}]`;
+        if (suggestionList.length > 0) {
+          errMsg += `<br><br>[系统建议]:<br>${suggestionList.join('<br>')}`;
+        } else {
+          errMsg += `<br><br>[系统提示]: 你还没有这些词汇，无法使用。快开卡包吧！`;
+        }
+        onSystemMessage(errMsg, true);
+        return; // 阻止发送
+      }
+      
+      // 全部验证通过，发送消息
       onSendMessage(html, validTokens);
     } else {
       onSendMessage(html, validTokens);
@@ -171,7 +219,7 @@ const InputArea = forwardRef(({
   return (
     <div id="input-area">
       {suggestions.length > 0 && (
-        <div id="suggestions" style={{ display: 'block' }}>
+        <div id="suggestions" ref={suggestionsRef} style={{ display: 'block' }}>
           {suggestions.map((word, idx) => (
             <div
               key={word}

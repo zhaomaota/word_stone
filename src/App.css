@@ -660,6 +660,8 @@ button.cyber-btn.cheat:hover:not(:disabled) {
   border-bottom: 1px solid #1a1a1a;
   cursor: pointer;
   transition: 0.2s;
+  height: 50px;
+  box-sizing: border-box;
 }
 
 .inv-item:hover {

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, memo, useCallback, useRef, useEffect } from 'react';
+import { api, auth } from '../utils/api';
 
 // 使用 memo 避免不必要的重渲染
 const InventoryItem = memo(({ word, rarity, trans, onClick }) => (
@@ -11,10 +12,15 @@ const InventoryItem = memo(({ word, rarity, trans, onClick }) => (
 InventoryItem.displayName = 'InventoryItem';
 
 export default function Sidebar({ inventory, onInsertWord }) {
+  const [viewMode, setViewMode] = useState('vocabulary'); // 'vocabulary' or 'favorites'
   const [searchTerm, setSearchTerm] = useState('');
   const [activeRarity, setActiveRarity] = useState(null);
+  const [favorites, setFavorites] = useState([]);
+  const [loadingFavorites, setLoadingFavorites] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
   const [scrollTop, setScrollTop] = useState(0);
   const listRef = useRef(null);
+  const loadingTimerRef = useRef(null);
   const [width, setWidth] = useState(() => {
     try {
       const stored = localStorage.getItem('sidebarWidth');
@@ -30,6 +36,42 @@ export default function Sidebar({ inventory, onInsertWord }) {
   const CONTAINER_HEIGHT = 600; // 容器高度，根据你的布局调整
   const BUFFER = 5; // 上下额外渲染的项数
 
+  // 加载生词本
+  useEffect(() => {
+    if (viewMode === 'favorites') {
+      loadFavorites();
+    }
+  }, [viewMode]);
+
+  const loadFavorites = async () => {
+    setLoadingFavorites(true);
+    setShowLoading(false);
+    
+    // 延迟300ms显示loading，避免快速加载时闪烁
+    loadingTimerRef.current = setTimeout(() => {
+      if (loadingFavorites) {
+        setShowLoading(true);
+      }
+    }, 300);
+    
+    try {
+      const token = auth.getToken();
+      const result = await api.getUserWords(token, { isFavorited: true });
+      
+      if (result.success) {
+        setFavorites(result.data.words || []);
+      }
+    } catch (error) {
+      console.error('加载生词本失败:', error);
+    } finally {
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+      }
+      setLoadingFavorites(false);
+      setShowLoading(false);
+    }
+  };
+
   // 预处理：将 inventory 转换为数组，只做一次
   const inventoryArray = useMemo(() => {
     return Object.entries(inventory).map(([word, data]) => ({
@@ -41,9 +83,21 @@ export default function Sidebar({ inventory, onInsertWord }) {
     }));
   }, [inventory]);
 
+  // 将生词本转换为数组格式
+  const favoritesArray = useMemo(() => {
+    return favorites.map(item => ({
+      word: item.word,
+      wordLower: item.word.toLowerCase(),
+      transLower: item.definition.toLowerCase(),
+      rarity: item.rarity,
+      trans: item.definition
+    }));
+  }, [favorites]);
+
   const filteredWords = useMemo(() => {
     const searchLower = searchTerm.toLowerCase().trim();
-    let items = inventoryArray;
+    // 根据视图模式选择数据源
+    let items = viewMode === 'favorites' ? favoritesArray : inventoryArray;
 
     // 先过滤稀有度（更快）
     if (activeRarity) {
@@ -62,7 +116,7 @@ export default function Sidebar({ inventory, onInsertWord }) {
     items.sort((a, b) => a.wordLower.localeCompare(b.wordLower));
 
     return items;
-  }, [inventoryArray, searchTerm, activeRarity]);
+  }, [inventoryArray, favoritesArray, searchTerm, activeRarity, viewMode]);
 
   // 计算可见范围
   const visibleRange = useMemo(() => {
@@ -157,11 +211,110 @@ export default function Sidebar({ inventory, onInsertWord }) {
         }}
       />
       <div className="sidebar-header">
+        {/* 优雅的标签页切换 */}
+        <div style={{
+          display: 'flex',
+          gap: '2px',
+          marginBottom: '16px',
+          background: 'rgba(0, 0, 0, 0.3)',
+          padding: '4px',
+          borderRadius: '8px',
+          border: '1px solid rgba(0, 243, 255, 0.2)'
+        }}>
+          <div
+            onClick={() => setViewMode('vocabulary')}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              background: viewMode === 'vocabulary' 
+                ? 'linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(0, 243, 255, 0.1))'
+                : 'transparent',
+              color: viewMode === 'vocabulary' ? 'var(--neon-cyan)' : '#666',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              textAlign: 'center',
+              border: viewMode === 'vocabulary' ? '1px solid rgba(0, 243, 255, 0.3)' : '1px solid transparent',
+              boxShadow: viewMode === 'vocabulary' ? '0 0 10px rgba(0, 243, 255, 0.2)' : 'none',
+              position: 'relative'
+            }}
+            onMouseEnter={(e) => {
+              if (viewMode !== 'vocabulary') {
+                e.currentTarget.style.background = 'rgba(0, 243, 255, 0.05)';
+                e.currentTarget.style.color = '#999';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (viewMode !== 'vocabulary') {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#666';
+              }
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span>词汇库</span>
+            </div>
+          </div>
+          <div
+            onClick={() => setViewMode('favorites')}
+            style={{
+              flex: 1,
+              padding: '10px 16px',
+              background: viewMode === 'favorites'
+                ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1))'
+                : 'transparent',
+              color: viewMode === 'favorites' ? '#ffd700' : '#666',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              textAlign: 'center',
+              border: viewMode === 'favorites' ? '1px solid rgba(255, 215, 0, 0.3)' : '1px solid transparent',
+              boxShadow: viewMode === 'favorites' ? '0 0 10px rgba(255, 215, 0, 0.2)' : 'none',
+              position: 'relative'
+            }}
+            onMouseEnter={(e) => {
+              if (viewMode !== 'favorites') {
+                e.currentTarget.style.background = 'rgba(255, 215, 0, 0.05)';
+                e.currentTarget.style.color = '#999';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (viewMode !== 'favorites') {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#666';
+              }
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span>生词本</span>
+            </div>
+          </div>
+        </div>
+
         <div className="vocab-stats">
-          <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            VOCABULARY
-          </span>
-          <span className="vocab-count">{Object.keys(inventory).length}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+            <span style={{ 
+              fontSize: '11px', 
+              textTransform: 'uppercase', 
+              letterSpacing: '1px',
+              color: viewMode === 'vocabulary' ? 'var(--neon-cyan)' : '#ffd700'
+            }}>
+              {viewMode === 'vocabulary' ? 'VOCABULARY' : 'FAVORITES'}
+            </span>
+            <span className="vocab-count" style={{
+              color: viewMode === 'vocabulary' ? 'var(--neon-cyan)' : '#ffd700'
+            }}>
+              {viewMode === 'vocabulary' ? Object.keys(inventory).length : favorites.length}
+            </span>
+          </div>
         </div>
 
         <div className="rarity-filter">
@@ -181,7 +334,7 @@ export default function Sidebar({ inventory, onInsertWord }) {
           <input
             type="text"
             id="side-search-input"
-            placeholder="搜索已拥有词汇..."
+            placeholder={viewMode === 'vocabulary' ? '搜索已拥有词汇...' : '搜索生词本...'}
             autoComplete="off"
             value={searchTerm}
             onChange={handleSearch}
@@ -204,9 +357,13 @@ export default function Sidebar({ inventory, onInsertWord }) {
           position: 'relative'
         }}
       >
-        {filteredWords.length === 0 ? (
+        {showLoading && viewMode === 'favorites' ? (
+          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--neon-cyan)' }}>
+            加载中...
+          </div>
+        ) : filteredWords.length === 0 ? (
           <div style={{ padding: '20px', textAlign: 'center', color: '#444' }}>
-            [无匹配数据]
+            {viewMode === 'favorites' ? '[暂无生词]' : '[无匹配数据]'}
           </div>
         ) : (
           <div style={{ height: `${totalHeight}px`, position: 'relative' }}>
