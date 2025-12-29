@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import OnlineUsersButton from './OnlineUsersButton';
 import AvatarDropdown from './AvatarDropdown';
+import { FaCalendarCheck, FaGift, FaBook, FaEnvelope } from 'react-icons/fa';
 
 export default function Header({ packs, onAddPacks, onOpenPack, onCheat, onlineUsers = [], isConnected = false, currentUsername = '', userRoses = 0, userAvatar = '', userNickname = '', onEditProfile, onChangePassword, onLogout }) {
   const [showPackMenu, setShowPackMenu] = useState(false);
@@ -32,10 +33,60 @@ export default function Header({ packs, onAddPacks, onOpenPack, onCheat, onlineU
     { type: 'legendary', name: '传说卡包', color: 'var(--legendary)', icon: '✨' }
   ];
   
+  const iconButtons = [
+    { icon: FaCalendarCheck, label: '每日签到', color: '#ffd700' },
+    { icon: FaGift, label: '在线奖励', color: '#ff69b4' },
+    { icon: FaBook, label: '图鉴', color: '#00f3ff' },
+    { icon: FaEnvelope, label: '邮件', color: '#90ee90' }
+  ];
+
   return (
     <header>
       <h1>Wordstone <span style={{ fontSize: '12px', color: 'var(--neon-blue)' }}>// BETA</span></h1>
       <div className="controls">
+        {/* 功能图标按钮 */}
+        {iconButtons.map((btn, index) => {
+          const IconComponent = btn.icon;
+          return (
+            <button
+              key={index}
+              className="icon-btn"
+              title={btn.label}
+              onClick={() => {}}
+              style={{
+                background: 'rgba(0, 0, 0, 0.3)',
+                border: '2px solid #333',
+                borderRadius: '2px',
+                padding: '8px 10px',
+                fontSize: '16px',
+                color: btn.color,
+                cursor: 'pointer',
+                transition: 'all 0.1s',
+                marginRight: '6px',
+                minWidth: '36px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                filter: 'drop-shadow(0 0 3px ' + btn.color + ')'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = btn.color;
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.filter = 'drop-shadow(0 0 6px ' + btn.color + ')';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.3)';
+                e.currentTarget.style.borderColor = '#333';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.filter = 'drop-shadow(0 0 3px ' + btn.color + ')';
+              }}
+            >
+              <IconComponent />
+            </button>
+          );
+        })}
+        
         {/* 在线用户按钮 */}
         <OnlineUsersButton 
           users={onlineUsers}
